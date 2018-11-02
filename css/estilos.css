@@ -1,0 +1,34 @@
+@font-face {
+    font-family: harabara;
+    src: url(../rsc/harabara.otf);
+}
+body{
+    background-image: url('../img/fondo.png');
+    background-size: cover;
+    background-repeat: no-repeat;
+}
+.titulo_h1{
+    font-size: 48px;
+    font-weight: bold;
+    font-family: harabara;
+    margin: 0 auto;
+    width:90%;
+    text-align: center;
+}
+.formulario{
+    background-color: rgba(255,255,255,0.3);
+    border-radius: 5px;
+    box-shadow: 0px 0px 10px black;
+}
+label{
+    font-weight: bolder;
+}
+.logo_centrado{
+    width: 40%;
+}
+.rojo_masivo{
+    color: rgba(160,17,34,1);
+}
+.amarillo_masivo{
+    color: rgba(210,176,70,1);
+}
