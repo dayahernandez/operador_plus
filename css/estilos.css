@@ -26,9 +26,20 @@ label{
 .logo_centrado{
     width: 40%;
 }
+.logo_centrado_ranking{
+    width: 20%;
+}
 .rojo_masivo{
     color: rgba(160,17,34,1);
 }
 .amarillo_masivo{
     color: rgba(210,176,70,1);
+}
+.top{
+    height: 80px;
+
+}
+.medalla{
+    width: 40%;
+    margin: 1%;
 }
