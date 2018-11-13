@@ -6,7 +6,7 @@
 	include '../conexion.php';
 	echo $_POST['funcion']();
 	function verRanking(){
-		$consulta="select * from sw_oplus_items";
+		$consulta="select * from sw_oplus_items order by item_id";
 		$rs_items=ejecutarSql($consulta);
 		$consulta="select e.yaan8,em.emp_fecha_ingreso,trim(e.yaalph) as operador,
 			trim(e.yaoemp) as codigo,trim(e.yassn) as identificacion,e.yamcu
@@ -119,6 +119,60 @@
 				$cumplimiento_total[$fila['identificacion']]=$fila['asis_cumplimiento']*$fila_puntaje['item_puntaje'];
 			}
 			$total[$indice]+=$asistencia_total[$fila['identificacion']]+$puntualidad_total[$fila['identificacion']]+$cumplimiento_total[$fila['identificacion']];
+		}
+		$consulta="select trim(me.yaalph) as operador,me.yaan8,trim(me.yaoemp) as codigo, trim(me.yassn) as identificacion,em.emp_fecha_ingreso,
+					(select count(ct.cas_afectacion) from sw_accidentalidad_vial_casos_terceros ct 
+					where  ct.yaan8=me.yaan8 and extract(month from cas_fcaccidente)='".$_POST['mes']."' and extract(year from cas_fcaccidente)='".$_POST['anio']."' and ct.cas_afectacion='Accidente' group by ct.yaan8) as accidente_t,
+					(select count(ct.cas_afectacion) from sw_accidentalidad_vial_casos_terceros ct 
+					where ct.yaan8=me.yaan8 and extract(month from cas_fcaccidente)='".$_POST['mes']."' and extract(year from cas_fcaccidente)='".$_POST['anio']."' and ct.cas_afectacion='Incidente' group by ct.yaan8) as incidente_t,
+					(select count(ct.cas_afectacion) from sw_accidentalidad_vial_casos_terceros ct 
+					where ct.yaan8=me.yaan8 and extract(month from cas_fcaccidente)='".$_POST['mes']."' and extract(year from cas_fcaccidente)='".$_POST['anio']."' and ct.cas_afectacion='Percance' group by ct.yaan8) as percance_t,
+					(select  count(c.cas_afectacion) from sw_accidentalidad_vial_casos c inner join sw_accidentalidad_datos_operador op on(c.cas_id=op.cas_id) 
+					where op.yaan8=me.yaan8 and extract(month from cas_fcaccidente)='".$_POST['mes']."' and extract(year from cas_fcaccidente)='".$_POST['anio']."' and c.cas_afectacion='Accidente' group by op.yaan8) as accidente,
+					(select  count(c.cas_afectacion) from sw_accidentalidad_vial_casos c inner join sw_accidentalidad_datos_operador op on(c.cas_id=op.cas_id) 
+					where op.yaan8=me.yaan8 and extract(month from cas_fcaccidente)='".$_POST['mes']."' and extract(year from cas_fcaccidente)='".$_POST['anio']."' and c.cas_afectacion='Incidente' group by op.yaan8) as incidente,
+					(select  count(c.cas_afectacion) from sw_accidentalidad_vial_casos c inner join sw_accidentalidad_datos_operador op on(c.cas_id=op.cas_id) 
+					where op.yaan8=me.yaan8 and extract(month from cas_fcaccidente)='".$_POST['mes']."' and extract(year from cas_fcaccidente)='".$_POST['anio']."' and c.cas_afectacion='Percance' group by op.yaan8) as percance
+					from sw_maestro_empleados me
+					inner join sw_empleados em on(em.emp_an8::numeric=me.yaan8)
+					inner join sw_udc ca on (trim(drsy)='06' and trim(drrt)='G' and trim(yajbcd)=trim(drky))
+					inner join sw_disciplinario_oficinas o on(trim(me.yamcu)=o.ofi_udc)
+					where me.yapast='0' and ca.drdl01 like '%OPERADOR%' and trim(me.yaoemp)<>''
+					GROUP BY me.yaan8,em.emp_fecha_ingreso ORDER BY 5";
+		$rs_seguridadVial=ejecutarSql($consulta);
+		$accidentes_total=array();
+		$incidentes_total=array();
+		$percances_total=array();
+		while ($fila=pg_fetch_assoc($rs_seguridadVial)) {
+			$indice=array_search($fila['identificacion'],$cedulas);
+			if($fila['accidente_t']>0 OR $fila['accidente']>0){
+				$accidentes_total[$fila['identificacion']]=0;
+			}else{
+				$consulta="select item_puntaje from sw_oplus_items where item_clave='accidentes'";
+				$rs_puntaje_accidentes=ejecutarSql($consulta);
+				if($fila_puntaje=pg_fetch_assoc($rs_puntaje_accidentes)){
+					$accidentes_total[$fila['identificacion']]=$fila_puntaje['item_puntaje'];
+				}
+			}
+			if($fila['incidente_t']>0 OR $fila['incidente']>0){
+				$incidentes_total[$fila['identificacion']]=0;
+			}else{
+				$consulta="select item_puntaje from sw_oplus_items where item_clave='incidentes'";
+				$rs_puntaje_incidentes=ejecutarSql($consulta);
+				if($fila_puntaje=pg_fetch_assoc($rs_puntaje_incidentes)){
+					$incidentes_total[$fila['identificacion']]=$fila_puntaje['item_puntaje'];
+				}
+			}
+			if($fila['percance_t']>0 OR $fila['percance']>0){
+				$percances_total[$fila['identificacion']]=0;
+			}else{
+				$consulta="select item_puntaje from sw_oplus_items where item_clave='percances'";
+				$rs_puntaje_percances=ejecutarSql($consulta);
+				if($fila_puntaje=pg_fetch_assoc($rs_puntaje_percances)){
+					$percances_total[$fila['identificacion']]=$fila_puntaje['item_puntaje'];
+				}
+			}
+			$total[$indice]+=$accidentes_total[$fila['identificacion']]+$incidentes_total[$fila['identificacion']]+$percances_total[$fila['identificacion']];
 		}
 		array_multisort($total,SORT_DESC,$fechas_ingreso,SORT_ASC,$operadores,SORT_ASC,$codigos,$cedulas);				
 		include '../ranking.php';

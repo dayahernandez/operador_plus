@@ -68,8 +68,8 @@
 	                    <tbody>
 	                    	<?php
 	                    		$indice_operador=array_search($_POST['cedula'],$cedulas);
-	                    		//for($i=0;$i<sizeof($cedulas);$i++){
-	                    		for($i=0;$i<10;$i++){
+	                    		for($i=0;$i<sizeof($cedulas);$i++){
+	                    		//for($i=0;$i<10;$i++){
 	                    	?>
 									<tr>
 										<td class="text-center"><?php echo $i+1; ?></td>
@@ -119,6 +119,21 @@
 												echo $cumplimiento_total[$cedulas[$i]];
 											?>
 										</td>
+										<td class="text-center">
+											<?php
+												echo $incidentes_total[$cedulas[$i]];
+											?>
+										</td>
+										<td class="text-center">
+											<?php
+												echo $accidentes_total[$cedulas[$i]];
+											?>
+										</td>
+										<td class="text-center">
+											<?php
+												echo $percances_total[$cedulas[$i]];
+											?>
+										</td>
 										<td class="text-center"><?php echo $total[$i] ?></td>
 									</tr>
 	                    	<?php
@@ -132,8 +147,8 @@
 									<td class="text-center"><?php echo $fechas_ingreso[$indice_operador] ?></td>
 									<td class="text-center">
 										<?php
-											echo $mecanica_total[$cedulas[$indice_operador	]];
-											if($mecanica_total[$cedulas[$indice_operador	]]=='0'){
+											echo $mecanica_total[$cedulas[$indice_operador]];
+											if($mecanica_total[$cedulas[$indice_operador]]=='0'){
 												echo '
 												<button type="button" title="Ver" onclick="verDetalleHallazgos('.$cedulas[$indice_operador].','.$_POST['mes'].','.$_POST['anio'].',\'M\')" class="btn btn-success">
                                         			<span class="fa fa-search"></span>
@@ -170,6 +185,21 @@
 									<td class="text-center">
 										<?php 
 											echo $cumplimiento_total[$cedulas[$indice_operador]];
+										?>
+									</td>
+									<td class="text-center">
+										<?php
+											echo $incidentes_total[$cedulas[$indice_operador]];
+										?>
+									</td>
+									<td class="text-center">
+										<?php
+											echo $accidentes_total[$cedulas[$indice_operador]];
+										?>
+									</td>
+									<td class="text-center">
+										<?php
+											echo $percances_total[$cedulas[$indice_operador]];
 										?>
 									</td>
 									<td class="text-center"><?php echo $total[$indice_operador] ?></td>
