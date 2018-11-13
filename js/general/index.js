@@ -7,6 +7,7 @@ function validarCedula(cedula){
         	'cedula': cedula
         },
         success: function(data){
+            console.log(data);
         	resultado=JSON.parse(data);
         	if(resultado=='false'){
         		$("#consultar").hide('fade','',1000);

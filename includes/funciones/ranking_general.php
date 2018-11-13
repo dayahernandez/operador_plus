@@ -82,14 +82,45 @@
 				}
 			}
 		}
-		
-		array_multisort($total,SORT_DESC,$fechas_ingreso,SORT_ASC,$operadores,SORT_ASC,$codigos,$cedulas);
-		/* Traer el  top 3 */
-		//array_multisort($ope_asoc,SORT_DESC,$fc_asoc,SORT_ASC,$ide_asoc,SORT_ASC);
-		/*$indice_primero=array_search($ide_asoc[0],$cedulas);
-		$indice_segundo=array_search($ide_asoc[1],$cedulas);
-		$indice_tercero=array_search($ide_asoc[2],$cedulas);*/
-				
+		$consulta="select trim(e.yaoemp) as codigo, trim(e.yassn) as identificacion, trim(e.yaalph) as operador, em.emp_fecha_ingreso,
+				(SELECT COUNT(asis_falta)  FROM sw_oplus_asistencia a WHERE  asis_cedula=(trim(yassn)) and asis_falta = TRUE 
+						and asis_mes = '".$_POST['mes']."' and asis_año='".$_POST['anio']."') as asis_falta,
+				(SELECT COUNT(asis_puntualidad) asis_puntualidad FROM sw_oplus_asistencia WHERE asis_cedula=(trim(yassn)) and asis_puntualidad = TRUE
+						and asis_mes = '".$_POST['mes']."' and asis_año='".$_POST['anio']."') as asis_puntualidad,
+				(SELECT COUNT(asis_cumplimiento) asis_cumplimiento FROM sw_oplus_asistencia WHERE asis_cedula=(trim(yassn)) and asis_cumplimiento = TRUE
+						and asis_mes = '".$_POST['mes']."' and asis_año='".$_POST['anio']."') as asis_cumplimiento
+				from sw_maestro_empleados e 
+				inner join sw_empleados em on(cast(e.yaan8 as text)=trim(em.emp_an8))
+				inner join sw_udc u on (trim(u.drsy)='06' and trim(u.drrt)='G' and trim(e.yajbcd)=trim(u.drky))
+				inner join sw_disciplinario_oficinas o on(trim(e.yamcu)=o.ofi_udc)
+				left join sw_oplus_asistencia a on (trim(e.yassn)=trim(a.asis_cedula) and asis_mes = '".$_POST['mes']."' and asis_año='".$_POST['anio']."')
+				where e.yapast='0' and drdl01 like '%OPERADOR%' and trim(e.yaoemp)<>''
+				group by e.yassn,e.yaoemp,e.yaalph,e.yadst,em.emp_fecha_ingreso
+				order by 4";
+		$rs_asistencia=ejecutarSql($consulta);
+		$asistencia_total=array();
+		$puntualidad_total=array();
+		$cumplimiento_total=array();
+		while ($fila=pg_fetch_assoc($rs_asistencia)) {
+			$indice=array_search($fila['identificacion'],$cedulas);
+			$consulta="select item_puntaje from sw_oplus_items where item_clave='asistencia'";
+			$rs_puntaje_asistencia=ejecutarSql($consulta);
+			if($fila_puntaje=pg_fetch_assoc($rs_puntaje_asistencia)){
+				$asistencia_total[$fila['identificacion']]=$fila['asis_falta']*$fila_puntaje['item_puntaje'];
+			}
+			$consulta="select item_puntaje from sw_oplus_items where item_clave='puntualidad'";
+			$rs_puntaje_puntualidad=ejecutarSql($consulta);
+			if($fila_puntaje=pg_fetch_assoc($rs_puntaje_puntualidad)){
+				$puntualidad_total[$fila['identificacion']]=$fila['asis_puntualidad']*$fila_puntaje['item_puntaje'];
+			}
+			$consulta="select item_puntaje from sw_oplus_items where item_clave='cumplimiento_asis'";
+			$rs_puntaje_cumplimiento=ejecutarSql($consulta);
+			if($fila_puntaje=pg_fetch_assoc($rs_puntaje_cumplimiento)){
+				$cumplimiento_total[$fila['identificacion']]=$fila['asis_cumplimiento']*$fila_puntaje['item_puntaje'];
+			}
+			$total[$indice]+=$asistencia_total[$fila['identificacion']]+$puntualidad_total[$fila['identificacion']]+$cumplimiento_total[$fila['identificacion']];
+		}
+		array_multisort($total,SORT_DESC,$fechas_ingreso,SORT_ASC,$operadores,SORT_ASC,$codigos,$cedulas);				
 		include '../ranking.php';
 
 	}

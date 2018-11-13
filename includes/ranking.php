@@ -91,14 +91,35 @@
 										<td class="text-center">
 											<?php
 												echo $carroceria_total[$cedulas[$i]];
+												if($carroceria_total[$cedulas[$indice_operador]]=='0'){
+													echo '
+													<button type="button" title="Ver" onclick="verDetalleHallazgos('.$cedulas[$i].','.$_POST['mes'].','.$_POST['anio'].',\'C\')" class="btn btn-success">
+	                                        			<span class="fa fa-search"></span>
+	                                        		</button>';
+												}
+											?>
+										</td>
+										<td>0</td>
+										<td>0</td>
+										<td>0</td>
+										<td>0</td>
+										<td>0</td>
+										<td class="text-center">
+											<?php 
+												echo $asistencia_total[$cedulas[$i]];
+											?>
+										</td>
+										<td class="text-center">
+											<?php 
+												echo $puntualidad_total[$cedulas[$i]];
+											?>
+										</td>
+										<td class="text-center">
+											<?php 
+												echo $cumplimiento_total[$cedulas[$i]];
 											?>
 										</td>
 										<td class="text-center"><?php echo $total[$i] ?></td>
-										<td>0</td>
-										<td>0</td>
-										<td>0</td>
-										<td>0</td>
-										<td>0</td>
 									</tr>
 	                    	<?php
 	                    		}
@@ -123,7 +144,7 @@
 									<td class="text-center">
 										<?php
 											echo $carroceria_total[$cedulas[$indice_operador]];
-											if($carroceria_total[$cedulas[$indice_operador	]]=='0'){
+											if($carroceria_total[$cedulas[$indice_operador]]=='0'){
 												echo '
 												<button type="button" title="Ver" onclick="verDetalleHallazgos('.$cedulas[$indice_operador].','.$_POST['mes'].','.$_POST['anio'].',\'C\')" class="btn btn-success">
                                         			<span class="fa fa-search"></span>
@@ -136,6 +157,21 @@
 									<td>0</td>
 									<td>0</td>
 									<td>0</td>
+									<td class="text-center">
+										<?php 
+											echo $asistencia_total[$cedulas[$indice_operador]];
+										?>
+									</td>
+									<td class="text-center">
+										<?php 
+											echo $puntualidad_total[$cedulas[$indice_operador]];
+										?>
+									</td>
+									<td class="text-center">
+										<?php 
+											echo $cumplimiento_total[$cedulas[$indice_operador]];
+										?>
+									</td>
 									<td class="text-center"><?php echo $total[$indice_operador] ?></td>
 								</tr>
 	                    </tbody>
