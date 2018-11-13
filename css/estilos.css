@@ -43,3 +43,7 @@ label{
     width: 40%;
     margin: 1%;
 }
+#fila_operador{
+    background-color: rgba(0,0,255,0.5);
+    font-weight: bold;
+}

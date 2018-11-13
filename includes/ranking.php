@@ -18,8 +18,8 @@
 				<div class="col-md-4 text-center" style="background-image: linear-gradient(rgba(0,0,0,0) 20%,rgba(60, 185, 29, 1));">
 					<div class="top">
 						<?php
-							echo "<h4>".$operadores[$indice_segundo]."</h4>
-								<h5>".$total[$indice_segundo]." Puntos</h5>";
+							echo "<h4>".$operadores[1]."</h4>
+								<h5>".$total[1]." Puntos</h5>";
 						?>
 					</div>
 					<br><br>
@@ -28,8 +28,8 @@
 				<div class="col-md-4 text-center" style="background-image: linear-gradient(rgba(0,0,0,0) 1%, rgba(219, 91, 0, 1));">
 					<div class="top">
 						<?php
-							echo "<h4>".$operadores[$indice_primero]."</h4>
-								<h5>".$total[$indice_primero]." Puntos</h5>";
+							echo "<h4>".$operadores[0]."</h4>
+								<h5>".$total[0]." Puntos</h5>";
 						?>
 					</div>
 					<br><br>
@@ -38,8 +38,8 @@
 				<div class="col-md-4 text-center" style="background-image: linear-gradient(rgba(0,0,0,0) 40%,rgba(62, 88, 204, 1));">
 					<div class="top">
 						<?php
-							echo "<h4>".$operadores[$indice_tercero]."</h4>
-								<h5>".$total[$indice_tercero]." Puntos</h5>";
+							echo "<h4>".$operadores[2]."</h4>
+								<h5>".$total[2]." Puntos</h5>";
 						?>
 					</div>
 					<br><br>
@@ -67,7 +67,9 @@
 	                    </thead>
 	                    <tbody>
 	                    	<?php
-	                    		for($i=0;$i<sizeof($cedulas);$i++){
+	                    		$indice_operador=array_search($_POST['cedula'],$cedulas);
+	                    		//for($i=0;$i<sizeof($cedulas);$i++){
+	                    		for($i=0;$i<10;$i++){
 	                    	?>
 									<tr>
 										<td class="text-center"><?php echo $i+1; ?></td>
@@ -77,29 +79,70 @@
 										<td class="text-center"><?php echo $fechas_ingreso[$i] ?></td>
 										<td class="text-center">
 											<?php
-												echo $carroceria_total[$i];
-											?>
-										</td>
-										<td class="text-center">
-											<?php
-												echo $mecanica_total[$i];
-												if($mecanica_total[$i]=='0'){
+												echo $mecanica_total[$cedulas[$i]];
+												if($mecanica_total[$cedulas[$i]]=='0'){
 													echo '
-													<button type="button" title="Ver" onclick="verDetalleMecanica('.$cedulas[$i].','.$_POST['mes'].','.$_POST['anio'].')" class="btn btn-success">
-                                            			<span  class="glyphicon glyphicon-search" aria-hidden="true"></span>
+													<button type="button" title="Ver" onclick="verDetalleHallazgos('.$cedulas[$i].','.$_POST['mes'].','.$_POST['anio'].',\'M\')" class="btn btn-success">
+                                            			<span class="fa fa-search"></span>
                                             		</button>';
 												}
 											?>
 										</td>
+										<td class="text-center">
+											<?php
+												echo $carroceria_total[$cedulas[$i]];
+											?>
+										</td>
 										<td class="text-center"><?php echo $total[$i] ?></td>
+										<td>0</td>
+										<td>0</td>
+										<td>0</td>
+										<td>0</td>
+										<td>0</td>
 									</tr>
 	                    	<?php
 	                    		}
 	                    	?>
+	                    		<tr id="fila_operador">
+									<td class="text-center"><?php echo $indice_operador+1; ?></td>
+									<td class="text-right"><?php echo $cedulas[$indice_operador] ?></td>
+									<td class="text-center"><?php echo $codigos[$indice_operador] ?></td>
+									<td><?php echo $operadores[$indice_operador] ?></td>
+									<td class="text-center"><?php echo $fechas_ingreso[$indice_operador] ?></td>
+									<td class="text-center">
+										<?php
+											echo $mecanica_total[$cedulas[$indice_operador	]];
+											if($mecanica_total[$cedulas[$indice_operador	]]=='0'){
+												echo '
+												<button type="button" title="Ver" onclick="verDetalleHallazgos('.$cedulas[$indice_operador].','.$_POST['mes'].','.$_POST['anio'].',\'M\')" class="btn btn-success">
+                                        			<span class="fa fa-search"></span>
+                                        		</button>';
+											}
+										?>
+									</td>
+									<td class="text-center">
+										<?php
+											echo $carroceria_total[$cedulas[$indice_operador]];
+											if($carroceria_total[$cedulas[$indice_operador	]]=='0'){
+												echo '
+												<button type="button" title="Ver" onclick="verDetalleHallazgos('.$cedulas[$indice_operador].','.$_POST['mes'].','.$_POST['anio'].',\'C\')" class="btn btn-success">
+                                        			<span class="fa fa-search"></span>
+                                        		</button>';
+											}
+										?>
+									</td>
+									<td>0</td>
+									<td>0</td>
+									<td>0</td>
+									<td>0</td>
+									<td>0</td>
+									<td class="text-center"><?php echo $total[$indice_operador] ?></td>
+								</tr>
 	                    </tbody>
 	                </table>
 				</div>
 			</div>
 		</div>
+		<?php include 'mantenimiento/ModalDetalleMantenimiento.php'; ?>
 	</body>
 </html>
