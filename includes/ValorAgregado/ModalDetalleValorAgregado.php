@@ -1,9 +1,9 @@
-<div id="ModalDetalleHallazgos" class="modal fade" role="dialog">
+<div id="ModalDetalleValor" class="modal fade" role="dialog">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header"  style="background-color:#9d2625">
                 <div class="text-center">
-                    <h4 class="modal-title" style="color:white">Hallazgos para <span id="operador_nombre_mantenimiento"></span></h4>
+                    <h4 class="modal-title" style="color:white">Valor agregado para <span id="operador_nombre_valor"></span></h4>
                 </div>
                 <button type="button" class="close" data-dismiss="modal">&times;</button>
             </div>
@@ -14,12 +14,11 @@
                         <thead class="thead-dark">
                             <tr>
                                 <th align="center">Fecha</th>
-                                <th align="center">Tipo de hallazgo</th>
-                                <th align="center">Descripción del hallazgo</th>
-                                <th align="center">Consecutivo checklist</th>
+                                <th align="center">Tipo de novedad</th>
+                                <th align="center">Descripción de la novedad</th>
                             </tr>
                         </thead>
-                        <tbody id="hallazgos">
+                        <tbody id="novedades">
                             
                         </tbody>
                     </table>

@@ -2,6 +2,8 @@ $(document).ready(function(){
     // DataTable en español
     $('#ranking').DataTable({
         "pageLength": 50,
+        "scrollY": 500,
+        "scrollX":true,
         "language":{
             "lengthMenu":"Mostrar _MENU_ registros por página.",
             "zeroRecords": "Lo sentimos. No se encontraron registros.",
@@ -16,6 +18,9 @@ $(document).ready(function(){
                 "previous": "Anterior",
                 "next": "Siguiente", 
             }
+        },
+        "fixedColumns":{
+            "leftColumns": 5
         }
     });
 });
@@ -31,9 +36,8 @@ function verDetalleHallazgos(cedula,mes,anio,tipo){
             'tipo':tipo
         },
         success: function(data){
-            console.log(data);
             resultado=JSON.parse(data);
-            $("#operador_nombre").empty();
+            $("#operador_nombre_mantenimiento").empty();
             $("#hallazgos").empty();
             $("#operador_nombre").html(resultado[0]['operador']);
             for(i=0;i<resultado.length;i++){
@@ -53,6 +57,48 @@ function verDetalleHallazgos(cedula,mes,anio,tipo){
                 $("#hallazgos").append(row);
             }
             $('#ModalDetalleHallazgos').modal('show');
+        }
+    });
+}
+function verValorAgregado(cedula,mes,anio,tipo){
+    $.ajax({  
+        type: 'post',
+        url: 'ranking_general.php',
+        data: {
+            'funcion': 'verValorAgregado',
+            'cedula': cedula,
+            'mes': mes,
+            'anio': anio,
+            'tipo':tipo
+        },
+        success: function(data){
+            resultado=JSON.parse(data);
+            $("#operador_nombre_valor").empty();
+            $("#operador_nombre").empty();
+            $("#novedades").empty();
+            $("#operador_nombre").html(resultado[0]['operador']);
+            for(i=0;i<resultado.length;i++){
+                row=$("<tr>");
+                fecha=$("<td>");
+                if(resultado[i]['val_fecha_fin']!=null){                         
+                    fecha.html(resultado[i]['val_fecha']+" / "+resultado[i]['val_fecha_fin']);
+                }else{
+                    fecha.html(resultado[i]['val_fecha']);
+                }
+                tipo_novedad=$("<td>");
+                tipo_novedad.html(resultado[i]['tipo_novedad']);
+                observacion=$("<td>");
+                if(resultado[i]['val_dias']!=null){
+                    observacion.html(resultado[i]['val_observacion']+" "+resultado[i]['val_dias']+" DÍAS.");
+                }else{
+                    observacion.html(resultado[i]['val_observacion']);
+                }
+                $(row).append(fecha);
+                $(row).append(tipo_novedad);
+                $(row).append(observacion);
+                $("#novedades").append(row);
+            }
+            $('#ModalDetalleValor').modal('show');
         }
     });
 }

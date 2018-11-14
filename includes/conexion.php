@@ -2,7 +2,7 @@
 session_start();
 header('Content-Type: text/html; charset=UTF-8');
 	function conectar(){
-		$conn=@pg_connect("dbname=jjj host=localhost user=postgres");
+		$conn=@pg_connect("dbname=pruebas_swcapital host=localhost user=postgres");
 		return $conn;	
 	}
 	function ejecutarSql($sql) {

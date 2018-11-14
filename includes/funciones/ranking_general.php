@@ -6,6 +6,7 @@
 	include '../conexion.php';
 	echo $_POST['funcion']();
 	function verRanking(){
+		/////////////////////////// Operadores ///////////////////////////
 		$consulta="select * from sw_oplus_items order by item_id";
 		$rs_items=ejecutarSql($consulta);
 		$consulta="select e.yaan8,em.emp_fecha_ingreso,trim(e.yaalph) as operador,
@@ -29,7 +30,12 @@
 			array_push($fechas_ingreso,$fila['emp_fecha_ingreso']);
 			array_push($total,0);
 		}
-		$consulta="select trim(e.yassn) as identificacion,count(m.man_fecha) as hallazgos
+		/////////////////////////// Mantenimiento  ///////////////////////////
+		$consulta="select trim(e.yassn) as identificacion,
+				(select count(m.man_id) from sw_oplus_mantenimiento m where cast(m.man_codigo as text)=trim(e.yaoemp)
+				and extract(month from m.man_fecha)=".$_POST['mes']." and extract(year from m.man_fecha)=".$_POST['anio']." and m.man_tipo='M' group by m.man_codigo)as mecanica,
+				(select count(m.man_id) from sw_oplus_mantenimiento m where cast(m.man_codigo as text)=trim(e.yaoemp)
+				and extract(month from m.man_fecha)=".$_POST['mes']." and extract(year from m.man_fecha)=".$_POST['anio']." and m.man_tipo='C' group by m.man_codigo)as carroceria
 				from sw_maestro_empleados e
 				inner join sw_empleados em on(cast(e.yaan8 as text)=trim(em.emp_an8))
 				inner join sw_udc u on (trim(u.drsy)='06' and trim(u.drrt)='G' and trim(e.yajbcd)=trim(u.drky))
@@ -40,48 +46,94 @@
 				group by e.yaan8,em.emp_fecha_ingreso order by 2";
 		$rs_mecanica=ejecutarSql($consulta);
 		$mecanica_total=array();
+		$carroceria_total=array();
 		while($fila=pg_fetch_assoc($rs_mecanica)){
 			$indice=array_search($fila['identificacion'],$cedulas);
-			$hallazgos=$fila['hallazgos'];
 			$consulta="select item_puntaje from sw_oplus_items where item_clave='mecanica'";
 			$rs_puntaje_mecanica=ejecutarSql($consulta);
 			if($fila_puntaje=pg_fetch_assoc($rs_puntaje_mecanica)){
-				if($hallazgos==0){
+				if($fila['mecanica']==0){
 					$mecanica_total[$fila['identificacion']]=$fila_puntaje['item_puntaje'];
-					$total[$indice]+=$fila_puntaje['item_puntaje'];
 				}else{					
 					$mecanica_total[$fila['identificacion']]=0;
-					$total[$indice]+=0;
 				}
 			}
+			$consulta="select item_puntaje from sw_oplus_items where item_clave='carroceria'";
+			$rs_puntaje_mecanica=ejecutarSql($consulta);
+			if($fila_puntaje=pg_fetch_assoc($rs_puntaje_mecanica)){
+				if($fila['carroceria']==0){
+					$carroceria_total[$fila['identificacion']]=$fila_puntaje['item_puntaje'];
+				}else{					
+					$carroceria_total[$fila['identificacion']]=0;
+				}
+			}
+			$total[$indice]+=$mecanica_total[$fila['identificacion']]+$carroceria_total[$fila['identificacion']];
 		}
-		$consulta="select e.yaan8,count(m.man_fecha) as hallazgos,em.emp_fecha_ingreso,trim(e.yaalph) as operador,
-				trim(e.yaoemp) as codigo,trim(e.yassn) as identificacion,e.yamcu
+		/////////////////////////// Valor Agregado ///////////////////////////
+		$consulta="select e.yaan8,em.emp_fecha_ingreso,trim(e.yaalph) as operador,trim(e.yaoemp) as codigo,trim(e.yassn) as identificacion,e.yamcu,
+				(select count(v.val_id) from sw_oplus_valagregado v where cast(v.val_codigo as text)=trim(e.yaoemp) 
+				and extract(month from v.val_fecha)=".$_POST['mes']." and extract(year from v.val_fecha)=".$_POST['anio']." 
+				and v.val_tipo='A' group by v.val_codigo) as ascensos,
+				(select count(v.val_id) from sw_oplus_valagregado v where cast(v.val_codigo as text)=trim(e.yaoemp) 
+				and extract(month from v.val_fecha)=".$_POST['mes']." and extract(year from v.val_fecha)=".$_POST['anio']." 
+				and v.val_tipo='R' group by v.val_codigo) as reconocimientos,
+				(select count(v.val_id) from sw_oplus_valagregado v where cast(v.val_codigo as text)=trim(e.yaoemp) 
+				and extract(month from v.val_fecha)=".$_POST['mes']." and extract(year from v.val_fecha)=".$_POST['anio']." 
+				and v.val_tipo='P' group by v.val_codigo) as participacion,
+				(select count(v.val_id) from sw_oplus_valagregado v where cast(v.val_codigo as text)=trim(e.yaoemp) 
+				and extract(month from v.val_fecha)=".$_POST['mes']." and extract(year from v.val_fecha)=".$_POST['anio']." 
+				and v.val_tipo='C' group by v.val_codigo) as cumplimiento,
+				(select v.val_dias from sw_oplus_valagregado v where cast(v.val_codigo as text)=trim(e.yaoemp) 
+				and extract(month from v.val_fecha)=".$_POST['mes']." and extract(year from v.val_fecha)=".$_POST['anio']." 
+				and v.val_tipo='V' group by v.val_dias) as vacaciones
 				from sw_maestro_empleados e
 				inner join sw_empleados em on(cast(e.yaan8 as text)=trim(em.emp_an8))
 				inner join sw_udc u on (trim(u.drsy)='06' and trim(u.drrt)='G' and trim(e.yajbcd)=trim(u.drky))
 				inner join sw_disciplinario_oficinas o on(trim(e.yamcu)=o.ofi_udc)
-				left join sw_oplus_mantenimiento m on(trim(yaoemp)=cast(m.man_codigo as text) 
-				and extract(month from man_fecha)=".$_POST['mes']." and extract(year from man_fecha)=".$_POST['anio']." and m.man_tipo='C')
-				where e.yapast='0' and u.drdl01 like '%OPERADOR%'  and trim(e.yaoemp)<>'' and 1=1 
-				group by e.yaan8,em.emp_fecha_ingreso order by 2";
-		$rs_carroceria=ejecutarSql($consulta);
-		$carroceria_total=array();
-		while($fila=pg_fetch_assoc($rs_carroceria)){
+				left join sw_oplus_valagregado v on(trim(yaoemp)=cast(v.val_codigo as text) 
+				and extract(month from val_fecha)=".$_POST['mes']." and extract(year from val_fecha)=".$_POST['anio'].")
+				where e.yapast='0' and u.drdl01 like '%OPERADOR%' and trim(e.yaoemp)<>'' group by e.yaan8,em.emp_fecha_ingreso order by 2";
+		$ascensos_total=array();
+		$participacion_total=array();
+		$reconocimientos_total=array();
+		$vacaciones_total=array();
+		$cumplimiento_total=array();
+		$rs_valagregado=ejecutarSql($consulta);
+		while ($fila=pg_fetch_assoc($rs_valagregado)) {
 			$indice=array_search($fila['identificacion'],$cedulas);
-			$hallazgos=$fila['hallazgos'];
-			$consulta="select item_puntaje from sw_oplus_items where item_clave='carroceria'";
-			$rs_puntaje_mecanica=ejecutarSql($consulta);
-			if($fila_puntaje=pg_fetch_assoc($rs_puntaje_mecanica)){
-				if($hallazgos==0){
-					$carroceria_total[$fila['identificacion']]=$fila_puntaje['item_puntaje'];
-					$total[$indice]+=$fila_puntaje['item_puntaje'];
-				}else{					
-					$carroceria_total[$fila['identificacion']]=0;
-					$total[$indice]+=0;
-				}
+			$consulta="select item_puntaje from sw_oplus_items where item_clave='ascenso'";
+			$rs_puntaje_ascensos=ejecutarSql($consulta);
+			if($fila_puntaje=pg_fetch_assoc($rs_puntaje_ascensos)){
+				$ascensos_total[$fila['identificacion']]=$fila['ascensos']*$fila_puntaje['item_puntaje'];
 			}
+
+			$consulta="select item_puntaje from sw_oplus_items where item_clave='reconocimiento'";
+			$rs_puntaje_reconocimiento=ejecutarSql($consulta);
+			if($fila_puntaje=pg_fetch_assoc($rs_puntaje_reconocimiento)){
+				$reconocimientos_total[$fila['identificacion']]=$fila['reconocimientos']*$fila_puntaje['item_puntaje'];
+			}
+
+			$consulta="select item_puntaje from sw_oplus_items where item_clave='participacion'";
+			$rs_puntaje_participacion=ejecutarSql($consulta);
+			if($fila_puntaje=pg_fetch_assoc($rs_puntaje_participacion)){
+				$participacion_total[$fila['identificacion']]=$fila['participacion']*$fila_puntaje['item_puntaje'];
+			}
+
+			$consulta="select item_puntaje from sw_oplus_items where item_clave='vacaciones'";
+			$rs_puntaje_vacaciones=ejecutarSql($consulta);
+			if($fila_puntaje=pg_fetch_assoc($rs_puntaje_vacaciones)){
+				$vacaciones_total[$fila['identificacion']]=$fila['vacaciones']*$fila_puntaje['item_puntaje'];
+			}
+
+			$consulta="select item_puntaje from sw_oplus_items where item_clave='cumplimiento'";
+			$rs_puntaje_cumplimiento=ejecutarSql($consulta);
+			if($fila_puntaje=pg_fetch_assoc($rs_puntaje_cumplimiento)){
+				$cumplimiento_total[$fila['identificacion']]=$fila['cumplimiento']*$fila_puntaje['item_puntaje'];
+			}
+			$total[$indice]+=$ascensos_total[$fila['identificacion']]+$reconocimientos_total[$fila['identificacion']]+
+			$participacion_total[$fila['identificacion']]+$vacaciones_total[$fila['identificacion']]+$cumplimiento_total[$fila['identificacion']];
 		}
+		/////////////////////////// Asistencia al trabajo ///////////////////////////
 		$consulta="select trim(e.yaoemp) as codigo, trim(e.yassn) as identificacion, trim(e.yaalph) as operador, em.emp_fecha_ingreso,
 				(SELECT COUNT(asis_falta)  FROM sw_oplus_asistencia a WHERE  asis_cedula=(trim(yassn)) and asis_falta = TRUE 
 						and asis_mes = '".$_POST['mes']."' and asis_año='".$_POST['anio']."') as asis_falta,
@@ -100,7 +152,7 @@
 		$rs_asistencia=ejecutarSql($consulta);
 		$asistencia_total=array();
 		$puntualidad_total=array();
-		$cumplimiento_total=array();
+		$cumplimiento_asis_total=array();
 		while ($fila=pg_fetch_assoc($rs_asistencia)) {
 			$indice=array_search($fila['identificacion'],$cedulas);
 			$consulta="select item_puntaje from sw_oplus_items where item_clave='asistencia'";
@@ -116,10 +168,11 @@
 			$consulta="select item_puntaje from sw_oplus_items where item_clave='cumplimiento_asis'";
 			$rs_puntaje_cumplimiento=ejecutarSql($consulta);
 			if($fila_puntaje=pg_fetch_assoc($rs_puntaje_cumplimiento)){
-				$cumplimiento_total[$fila['identificacion']]=$fila['asis_cumplimiento']*$fila_puntaje['item_puntaje'];
+				$cumplimiento_asis_total[$fila['identificacion']]=$fila['asis_cumplimiento']*$fila_puntaje['item_puntaje'];
 			}
-			$total[$indice]+=$asistencia_total[$fila['identificacion']]+$puntualidad_total[$fila['identificacion']]+$cumplimiento_total[$fila['identificacion']];
+			$total[$indice]+=$asistencia_total[$fila['identificacion']]+$puntualidad_total[$fila['identificacion']]+$cumplimiento_asis_total[$fila['identificacion']];
 		}
+		/////////////////////////// Seguridad vial ///////////////////////////
 		$consulta="select trim(me.yaalph) as operador,me.yaan8,trim(me.yaoemp) as codigo, trim(me.yassn) as identificacion,em.emp_fecha_ingreso,
 					(select count(ct.cas_afectacion) from sw_accidentalidad_vial_casos_terceros ct 
 					where  ct.yaan8=me.yaan8 and extract(month from cas_fcaccidente)='".$_POST['mes']."' and extract(year from cas_fcaccidente)='".$_POST['anio']."' and ct.cas_afectacion='Accidente' group by ct.yaan8) as accidente_t,
@@ -202,5 +255,22 @@
 			array_push($hallazgos,$fila);
 		}
 		return json_encode($hallazgos);
+	}
+	function verValorAgregado(){
+		$consulta="select v.*,trim(e.yaalph) as operador,
+					(case val_tipo when 'A' then 'Ascenso' when 'R' then 'Reconocimiento'
+					when 'P' then 'Participación en actividades empresariales' when 'V' then 'Vacaciones'
+					when 'C' then 'Cumplimiento actualizaciones y capacitaciones adicionales' end)as tipo_novedad
+					from sw_oplus_valagregado v
+					inner join sw_maestro_empleados e on(trim(yaoemp)=cast(v.val_codigo as text))
+					inner join sw_empleados em on(cast(e.yaan8 as text)=trim(em.emp_an8))
+					where val_tipo='".$_POST['tipo']."' and extract(month from val_fecha)=".$_POST['mes']." and extract(year from val_fecha)=".$_POST['anio']."
+					and trim(em.emp_identificacion)='".$_POST['cedula']."'";
+		$rs=ejecutarSql($consulta);
+		$valor_agregado=array();
+		while($fila=pg_fetch_assoc($rs)){
+			array_push($valor_agregado,$fila);
+		}
+		return json_encode($valor_agregado);
 	}
 ?>
